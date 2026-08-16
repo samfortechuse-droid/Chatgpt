@@ -1,0 +1,37 @@
+services:
+
+  # The Brain & Browser Environment
+  - type: web
+    name: agent-backend
+    env: docker
+    dockerfilePath: ./backend/Dockerfile
+    plan: standard
+
+    # Ensure enough RAM for Chromium + VNC
+    healthCheckPath: /health
+
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+
+      - key: ENVIRONMENT
+        value: production
+
+
+  # The Premium UI
+  - type: web
+    name: agent-frontend
+    env: node
+    plan: standard
+
+    buildCommand: cd frontend && npm install && npm run build
+
+    startCommand: cd frontend && npm start
+
+    envVars:
+      - key: NEXT_PUBLIC_BACKEND_URL
+
+        fromService:
+          name: agent-backend
+          type: web
+          property: host
